@@ -3,25 +3,18 @@ import streamlit as st
 import matplotlib.pyplot as plt
 
 
-def count_passengers() -> dict:
-    data = {
-        '1': {
-            'under_30': 0,
-            'above_60': 0,
-            'total': 0
-        },
-        '2': {
-            'under_30': 0,
-            'above_60': 0,
-            'total': 0
-        },
-        '3': {
-            'under_30': 0,
-            'above_60': 0,
-            'total': 0
-        }
-            }
+def read_user_input():
+    pclass = st.radio('Класс пассажира', ['Любой', 1, 2, 3])
+    return pclass
 
+
+def count_passengers() -> dict:
+    pclass_filter = read_user_input()
+    data = {
+        'under_30': 0,
+        'above_60': 0,
+        'total': 0
+    }
     with open('data.csv') as file:
         csv_reader = csv.reader(file)
         next(csv_reader)  # читаем со второй строки
@@ -31,68 +24,63 @@ def count_passengers() -> dict:
                 if age == '':
                     continue  # отбрасываем строки с неизвестным возрастом согласно условию
                 age = float(age)
-                pclass = line[2]
+
+                pclass = int(line[2])  # применяем фильтр
+                if pclass_filter != 'Любой':
+                    if pclass != pclass_filter:
+                        continue
+
                 if age < 30.0:
-                    data[pclass]['under_30'] += 1
+                    data['under_30'] += 1
                 elif age > 60.0:
-                    data[pclass]['above_60'] += 1
-                data[pclass]['total'] += 1
+                    data['above_60'] += 1
+                data['total'] += 1
 
     return data
 
 
 def survival_rate(data: dict) -> dict:
-    answ = {
-        'Passenger class': [],
-        'Survival rate under 30': [],
-        'Survival rate above 60': []
+    return {
+        'survival rate under 30': round(data['under_30'] / data['total'] * 100),
+        'survival rate above 60': round(data['above_60'] / data['total'] * 100)
     }
-    for key in data:
-        answ['Passenger class'].append(key)
-        answ['Survival rate under 30'].append(round(data[key]['under_30'] / data[key]['total'] * 100, 2)),
-        answ['Survival rate above 60'].append(round(data[key]['above_60'] / data[key]['total'] * 100, 2)),
-    return answ
 
 
 def make_page():
     st.title('Лабораторная работа №9')
 
     st.image('static/titanic.jpg')
-    st.header('Данные пассажиров Титаника')
+    st.header('Данные пассажиров титаника')
 
 
-def read_user_input():
-    checkbox = st.selectbox('Класс пассажира', ['Любой', 1, 2, 3])
-    return checkbox
-
-
-def make_figure(data, filter=None):
+def make_figure(data):
     fig = plt.figure(figsize=(10, 5))
-    if isinstance(filter, int):
-        data = {
-            key: value[filter-1] for key, value in data.items()
-        }
-    classes = data['Passenger class']
-    survival_rates_under_30 = data['Survival rate under 30']
-    survival_rates_above_60 = data['Survival rate above 60']
 
-    plt.bar(classes, survival_rates_under_30, width=0.2, label='Процент выживших младше 30 лет', color='b', align='center')
-    plt.bar(classes, survival_rates_above_60, width=0.2, label='Процент выживших старше 60 лет', color='r', align='center')
+    plt.bar(
+        ['Доля выживших младше 30 лет', 'Доля выживших старше 60 лет'],
+        [data['survival rate under 30'], data['survival rate above 60']],
+    )
 
-    plt.xlabel('Класс билета')
-    plt.ylabel('Процент выживших (%)')
-    plt.title('Процент выживших с учетом класса билета')
-    plt.legend()
+    plt.xlabel('Возрастная группа')
+    plt.ylabel('Доля выживших (%)')
+    plt.title('Доля выживших пассажиров по возрастным группам')
 
     st.pyplot(fig)
 
 
 def main():
-    survivors = survival_rate(count_passengers())
     make_page()
-    st.table(survivors)
-    checkbox = read_user_input()
-    make_figure(survivors, filter=checkbox)
+    survivors = survival_rate(count_passengers())
+    st.table(
+        {
+            'Возрастная группа': ['До 30 лет', 'Старше 60 лет'],
+            'Доля спасшихся (%)': [
+                survivors['survival rate under 30'],
+                survivors['survival rate above 60']
+            ]
+         }
+    )
+    make_figure(survivors)
 
 
 if __name__ == '__main__':
