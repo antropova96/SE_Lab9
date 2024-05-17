@@ -29,19 +29,23 @@ def count_passengers(csv_data, pclass_filter='Любой') -> dict:
         age = line[5]
         if age == '':
             continue  # отбрасываем строки с неизвестным возрастом согласно условию
+        age = float(age)
+
+        if 30 < age < 60:
+            continue
 
         pclass = int(line[2])  # применяем фильтр
         if pclass_filter != 'Любой':
             if pclass != pclass_filter:
                 continue
 
+        data['total'] += 1
+
         if int(line[1]) == 1:
-            age = float(age)
             if age < 30.0:
                 data['under_30'] += 1
             elif age > 60.0:
                 data['above_60'] += 1
-        data['total'] += 1
 
     return data
 
