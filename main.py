@@ -8,38 +8,45 @@ def read_user_input():
     return pclass
 
 
-def count_passengers() -> dict:
-    pclass_filter = read_user_input()
+def read_csv_data():
+    data = []
+    with open('data.csv') as file:
+        csv_reader = csv.reader(file)
+        next(csv_reader)  # читаем со второй строки
+        for line in csv_reader:
+            data.append(line)
+    return data
+
+
+def count_passengers(csv_data, pclass_filter='Любой') -> dict:
     data = {
         'under_30': 0,
         'above_60': 0,
         'total': 0
     }
-    with open('data.csv') as file:
-        csv_reader = csv.reader(file)
-        next(csv_reader)  # читаем со второй строки
-        for line in csv_reader:
-            if int(line[1]) == 1:
-                age = line[5]
-                if age == '':
-                    continue  # отбрасываем строки с неизвестным возрастом согласно условию
-                age = float(age)
 
-                pclass = int(line[2])  # применяем фильтр
-                if pclass_filter != 'Любой':
-                    if pclass != pclass_filter:
-                        continue
+    for line in csv_data:
+        age = line[5]
+        if age == '':
+            continue  # отбрасываем строки с неизвестным возрастом согласно условию
 
-                if age < 30.0:
-                    data['under_30'] += 1
-                elif age > 60.0:
-                    data['above_60'] += 1
-                data['total'] += 1
+        pclass = int(line[2])  # применяем фильтр
+        if pclass_filter != 'Любой':
+            if pclass != pclass_filter:
+                continue
+
+        if int(line[1]) == 1:
+            age = float(age)
+            if age < 30.0:
+                data['under_30'] += 1
+            elif age > 60.0:
+                data['above_60'] += 1
+        data['total'] += 1
 
     return data
 
 
-def survival_rate(data: dict) -> dict:
+def count_survival_rate(data: dict) -> dict:
     return {
         'survival rate under 30': round(data['under_30'] / data['total'] * 100),
         'survival rate above 60': round(data['above_60'] / data['total'] * 100)
@@ -70,7 +77,12 @@ def make_figure(data):
 
 def main():
     make_page()
-    survivors = survival_rate(count_passengers())
+    pclass_filter = read_user_input()
+    data = read_csv_data()
+    survivors = count_survival_rate(count_passengers(
+        data,
+        pclass_filter
+    ))
     st.table(
         {
             'Возрастная группа': ['До 30 лет', 'Старше 60 лет'],
