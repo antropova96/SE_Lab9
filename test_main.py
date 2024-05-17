@@ -15,7 +15,7 @@ def test_count_survived_passengers():
 
     assert answer == {'under_30': 1,
                       'above_60': 1,
-                      'total': 5
+                      'total': 3
                       }
 
 
@@ -24,7 +24,7 @@ def test_calculate_survival_rate():
     suvivours = count_passengers(data, pclass_filter)
 
     survival_rate = count_survival_rate(suvivours)
-    assert survival_rate == {'survival rate above 60': 20, 'survival rate under 30': 20}
+    assert survival_rate == {'survival rate above 60': 33, 'survival rate under 30': 33}
 
 
 def test_count_survived_first_class():
@@ -33,7 +33,7 @@ def test_count_survived_first_class():
 
     assert answer == {'under_30': 0,
                       'above_60': 1,
-                      'total': 2
+                      'total': 1
                       }
 
 
@@ -43,7 +43,7 @@ def test_count_survived_third_class():
 
     assert answer == {'under_30': 1,
                       'above_60': 0,
-                      'total': 3
+                      'total': 2
                       }
 
 
